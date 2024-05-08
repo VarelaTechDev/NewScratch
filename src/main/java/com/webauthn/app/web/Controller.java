@@ -63,15 +63,17 @@ public class Controller {
         @RequestParam String display,
         HttpSession session
     ) {
-        User existingUser = service.getUserRepo().findByUsername(username);
+        User existingUser = service.getUserRepository().findByUsername(username);
         if (existingUser == null) {
+
             UserIdentity userIdentity = UserIdentity.builder()
                 .name(username)
                 .displayName(display)
                 .id(Utility.generateRandom(32))
                 .build();
+
             User saveUser = new User(userIdentity);
-            service.getUserRepo().save(saveUser);
+            service.getUserRepository().save(saveUser);
             String response = newAuthRegistration(saveUser, session);
             return response;
         } else {
@@ -85,7 +87,7 @@ public class Controller {
         @RequestParam User user,
         HttpSession session
     ) {
-        User existingUser = service.getUserRepo().findByHandle(user.getHandle());
+        User existingUser = service.getUserRepository().findByHandle(user.getHandle());
         if (existingUser != null) {
             UserIdentity userIdentity = user.toUserIdentity();
             StartRegistrationOptions registrationOptions = StartRegistrationOptions.builder()
@@ -112,7 +114,7 @@ public class Controller {
         HttpSession session
     ) {
             try {
-                User user = service.getUserRepo().findByUsername(username);
+                User user = service.getUserRepository().findByUsername(username);
                 PublicKeyCredentialCreationOptions requestOptions = (PublicKeyCredentialCreationOptions) session.getAttribute(user.getUsername());
                 if (requestOptions != null) {
                     PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc =
@@ -123,7 +125,7 @@ public class Controller {
                         .build();
                     RegistrationResult result = relyingParty.finishRegistration(options);
                     Passkeys savedAuth = new Passkeys(result, pkc.getResponse(), user, credname);
-                    service.getAuthRepository().save(savedAuth);
+                    service.getPasskeysRepository().save(savedAuth);
                     return new ModelAndView("redirect:/login", HttpStatus.SEE_OTHER);
                 } else {
                     throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Cached request expired. Try to register again!");

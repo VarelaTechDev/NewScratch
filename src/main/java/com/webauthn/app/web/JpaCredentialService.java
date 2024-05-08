@@ -1,5 +1,6 @@
 package com.webauthn.app.web;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -23,14 +24,14 @@ import lombok.Getter;
 @Getter
 public class JpaCredentialService implements CredentialRepository  {
     @Autowired
-    private UserRepository userRepo;
+    private UserRepository userRepository;
     @Autowired
-    private PasskeysRepository authRepository;
+    private PasskeysRepository passkeysRepository;
 
     @Override
     public Set<PublicKeyCredentialDescriptor> getCredentialIdsForUsername(String username) {
-        User user = userRepo.findByUsername(username);
-        List<Passkeys> auth = authRepository.findAllByUser(user);
+        User user = userRepository.findByUsername(username);
+        List<Passkeys> auth = passkeysRepository.findAllByUser(user);
         return auth.stream()
         .map(
             credential ->
@@ -42,19 +43,19 @@ public class JpaCredentialService implements CredentialRepository  {
 
     @Override
     public Optional<ByteArray> getUserHandleForUsername(String username) {
-        User user = userRepo.findByUsername(username);
+        User user = userRepository.findByUsername(username);
         return Optional.of(user.getHandle());
     }
 
     @Override
     public Optional<String> getUsernameForUserHandle(ByteArray userHandle) {
-        User user = userRepo.findByHandle(userHandle);
+        User user = userRepository.findByHandle(userHandle);
         return Optional.of(user.getUsername());
     }
 
     @Override
     public Optional<RegisteredCredential> lookup(ByteArray credentialId, ByteArray userHandle) {
-        Optional<Passkeys> auth = authRepository.findByCredentialId(credentialId);
+        Optional<Passkeys> auth = passkeysRepository.findByCredentialId(credentialId);
         return auth.map(
             credential ->
                 RegisteredCredential.builder()
@@ -68,7 +69,7 @@ public class JpaCredentialService implements CredentialRepository  {
 
     @Override
     public Set<RegisteredCredential> lookupAll(ByteArray credentialId) {
-        List<Passkeys> auth = authRepository.findAllByCredentialId(credentialId);
+        List<Passkeys> auth = passkeysRepository.findAllByCredentialId(credentialId);
         return auth.stream()
         .map(
             credential ->
