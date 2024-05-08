@@ -1,7 +1,7 @@
 package com.webauthn.app;
 
 import com.webauthn.app.configuration.WebAuthProperties;
-import com.webauthn.app.web.RegistrationService;
+import com.webauthn.app.web.JpaCredentialService;
 import com.yubico.webauthn.RelyingParty;
 import com.yubico.webauthn.data.RelyingPartyIdentity;
 
@@ -19,7 +19,7 @@ public class AppApplication {
 
 	@Bean
 	@Autowired
-	public RelyingParty relyingParty(RegistrationService regisrationRepository, WebAuthProperties properties) {
+	public RelyingParty relyingParty(JpaCredentialService regisrationRepository, WebAuthProperties properties) {
 		RelyingPartyIdentity rpIdentity = RelyingPartyIdentity.builder()
 			.id(properties.getHostName())
 			.name(properties.getDisplay())

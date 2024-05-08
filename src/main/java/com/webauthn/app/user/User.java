@@ -1,12 +1,14 @@
 package com.webauthn.app.user;
 
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 
+import com.webauthn.app.utility.ByteArrayAttributeConverter;
 import com.yubico.webauthn.data.ByteArray;
 import com.yubico.webauthn.data.UserIdentity;
 
@@ -16,7 +18,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor
-public class AppUser {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -28,10 +30,11 @@ public class AppUser {
     private String displayName;
 
     @Lob
+    @Convert(converter = ByteArrayAttributeConverter.class)
     @Column(nullable = false, length = 64)
     private ByteArray handle;
 
-    public AppUser(UserIdentity user) {
+    public User(UserIdentity user) {
         this.handle = user.getId();
         this.username = user.getName();
         this.displayName = user.getDisplayName();

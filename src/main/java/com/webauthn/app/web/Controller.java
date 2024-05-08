@@ -5,8 +5,8 @@ import java.io.IOException;
 import javax.servlet.http.HttpSession;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.webauthn.app.authenticator.Authenticator;
-import com.webauthn.app.user.AppUser;
+import com.webauthn.app.authenticator.Passkeys;
+import com.webauthn.app.user.User;
 import com.webauthn.app.utility.Utility;
 import com.yubico.webauthn.AssertionRequest;
 import com.yubico.webauthn.AssertionResult;
@@ -27,7 +27,6 @@ import com.yubico.webauthn.exception.AssertionFailedException;
 import com.yubico.webauthn.exception.RegistrationFailedException;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,13 +35,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.ModelAndView;
 
-@Controller
-public class AuthController {
+@org.springframework.stereotype.Controller
+public class Controller {
 
     private RelyingParty relyingParty;
-    private RegistrationService service;
+    private JpaCredentialService service;
 
-    AuthController(RegistrationService service, RelyingParty relyingPary) {
+    Controller(JpaCredentialService service, RelyingParty relyingPary) {
         this.relyingParty = relyingPary;
         this.service = service;
     }
@@ -64,14 +63,14 @@ public class AuthController {
         @RequestParam String display,
         HttpSession session
     ) {
-        AppUser existingUser = service.getUserRepo().findByUsername(username);
+        User existingUser = service.getUserRepo().findByUsername(username);
         if (existingUser == null) {
             UserIdentity userIdentity = UserIdentity.builder()
                 .name(username)
                 .displayName(display)
                 .id(Utility.generateRandom(32))
                 .build();
-            AppUser saveUser = new AppUser(userIdentity);
+            User saveUser = new User(userIdentity);
             service.getUserRepo().save(saveUser);
             String response = newAuthRegistration(saveUser, session);
             return response;
@@ -83,10 +82,10 @@ public class AuthController {
     @PostMapping("/registerauth")
     @ResponseBody
     public String newAuthRegistration(
-        @RequestParam AppUser user,
+        @RequestParam User user,
         HttpSession session
     ) {
-        AppUser existingUser = service.getUserRepo().findByHandle(user.getHandle());
+        User existingUser = service.getUserRepo().findByHandle(user.getHandle());
         if (existingUser != null) {
             UserIdentity userIdentity = user.toUserIdentity();
             StartRegistrationOptions registrationOptions = StartRegistrationOptions.builder()
@@ -113,7 +112,7 @@ public class AuthController {
         HttpSession session
     ) {
             try {
-                AppUser user = service.getUserRepo().findByUsername(username);
+                User user = service.getUserRepo().findByUsername(username);
                 PublicKeyCredentialCreationOptions requestOptions = (PublicKeyCredentialCreationOptions) session.getAttribute(user.getUsername());
                 if (requestOptions != null) {
                     PublicKeyCredential<AuthenticatorAttestationResponse, ClientRegistrationExtensionOutputs> pkc =
@@ -123,7 +122,7 @@ public class AuthController {
                         .response(pkc)
                         .build();
                     RegistrationResult result = relyingParty.finishRegistration(options);
-                    Authenticator savedAuth = new Authenticator(result, pkc.getResponse(), user, credname);
+                    Passkeys savedAuth = new Passkeys(result, pkc.getResponse(), user, credname);
                     service.getAuthRepository().save(savedAuth);
                     return new ModelAndView("redirect:/login", HttpStatus.SEE_OTHER);
                 } else {
