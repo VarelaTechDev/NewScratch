@@ -1,4 +1,4 @@
-import os
+```import os
 
 # List of parent directories to look for
 parent_folders = ["api", "client", "business"]
@@ -40,7 +40,7 @@ def search_and_replace_version(root_dir):
 if __name__ == "__main__":
     current_directory = os.getcwd()
     search_and_replace_version(current_directory)
-
+```
 
 # Java Spring Boot Implementation of WebAuthn
 
