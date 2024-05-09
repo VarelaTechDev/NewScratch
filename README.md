@@ -1,4 +1,5 @@
-```import os
+```
+import os
 
 # List of parent directories to look for
 parent_folders = ["api", "client", "business"]
@@ -25,17 +26,14 @@ def replace_version_in_file(file_path):
         print(f"Updated version in {file_path}")
 
 def search_and_replace_version(root_dir):
-    """Search directories that match the parent_folders and replace version in build.gradle."""
-    for parent in parent_folders:
-        # Path pattern to match
-        parent_pattern = parent + "-"
-        for root, dirs, files in os.walk(root_dir):
-            # Check if current folder starts with one of the parent_patterns
-            for dir_name in dirs:
-                if dir_name.startswith(parent_pattern):
-                    build_gradle_path = os.path.join(root, dir_name, 'build.gradle')
-                    if os.path.isfile(build_gradle_path):
-                        replace_version_in_file(build_gradle_path)
+    """Search directories under specified parent folders and replace version in build.gradle."""
+    for root, dirs, files in os.walk(root_dir):
+        # Check each directory to see if it's under any of the specified parent folders
+        if any(parent in root for parent in parent_folders):
+            for file in files:
+                if file == 'build.gradle':
+                    build_gradle_path = os.path.join(root, file)
+                    replace_version_in_file(build_gradle_path)
 
 if __name__ == "__main__":
     current_directory = os.getcwd()
